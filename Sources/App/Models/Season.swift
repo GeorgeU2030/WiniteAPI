@@ -29,6 +29,10 @@ final class Season: Model, Content, @unchecked Sendable {
         self.image = image
         self.title = title
         self.wins = wins
-        self.$bestSkin.id = bestSkinID
+        if let bestSkinID = bestSkinID {
+            self.$bestSkin.id = bestSkinID
+        } else {
+            self.$bestSkin.id = nil
+        }
     }
 }
