@@ -7,4 +7,7 @@ func routes(_ app: Application) throws {
     
     let seasonRoutes = SeasonController()
     try app.register(collection: seasonRoutes)
+    
+    let skinRoutes = SkinController()
+    try app.register(collection: skinRoutes)
 }
