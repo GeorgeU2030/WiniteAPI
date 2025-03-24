@@ -42,8 +42,21 @@ struct SkinSeasonController: RouteCollection {
             throw Abort(.notFound, reason: "SkinSeason not found")
         }
         
+        let seasonId = skinSeason.$season.id
+
         skinSeason.wins = updateRequest.wins
+        try await skinSeason.save(on: req.db)
         
+        let totalWins = try await SkinSeason.query(on: req.db)
+        .filter(\.$season.$id == seasonId)
+        .all()
+        .reduce(0) { $0 + $1.wins }
+    
+        if let season = try await Season.find(seasonId, on: req.db) {
+            season.wins = totalWins 
+            try await season.save(on: req.db)
+        }
+
         if let existSkin = try await Skin.query(on: req.db)
             .filter(\.$name == skinSeason.name)
             .first() {
@@ -51,7 +64,6 @@ struct SkinSeasonController: RouteCollection {
             try await existSkin.save(on: req.db)
         }
         
-        try await skinSeason.save(on: req.db)
         return skinSeason
     }
 

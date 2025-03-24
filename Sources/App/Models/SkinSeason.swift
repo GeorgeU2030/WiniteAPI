@@ -29,4 +29,5 @@ final class SkinSeason: Model, Content, @unchecked Sendable {
         self.wins = wins
         self.$season.id = seasonID
     }
+
 }
