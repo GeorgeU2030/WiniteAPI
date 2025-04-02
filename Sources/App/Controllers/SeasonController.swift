@@ -11,7 +11,10 @@ struct SeasonController: RouteCollection {
     }
     
     func index(req: Request) async throws -> [Season] {
-        try await Season.query(on: req.db).all()
+        try await Season.query(on: req.db)
+        .with(\.$bestSkin)
+        .sort(\.$wins, .descending)
+        .all()
     }
     
     func create(req: Request) async throws -> Season {
@@ -27,20 +30,24 @@ struct SeasonController: RouteCollection {
         return season
     }
 
-    func getOne(req: Request) async throws -> Season {
+    func getOne(req: Request) async throws -> SeasonResponse {
         let seasonId = try req.parameters.require("seasonId", as: UUID.self)
-
+    
+        // Obtener la temporada
         guard let season = try await Season.query(on: req.db)
             .filter(\.$id == seasonId)
-            .with(\.$skinSeason) 
-            .with(\.$bestSkin)   
+            .with(\.$bestSkin)
             .first() else {
             throw Abort(.notFound)
         }
-
-        return season
+    
+        let skins = try await SkinSeason.query(on: req.db)
+            .filter(\.$season.$id == seasonId)
+            .sort(\.$wins, .descending)
+            .all()
+    
+        return SeasonResponse(season: season, skins: skins)
     }
-
     
     func updateBestSkin(req: Request) async throws -> Season {
         let seasonId = try req.parameters.require("seasonId", as: UUID.self)
